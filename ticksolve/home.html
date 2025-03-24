@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TickSolve</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background-color: #1a56db;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: radial-gradient(circle at top right, rgba(59, 130, 246, 0.5) 0%, transparent 50%),
+                            radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.5) 0%, transparent 50%);
+        }
+        
+        .home-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .form-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            gap: 20px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background-color: rgba(0, 0, 0, 0.1);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .input-field::placeholder {
+            color: white;
+        }
+        
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: white;
+            color: #1a56db;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="home-container">
+        <h1 style="color: white; font-size: 3rem; margin-bottom: 30px;">TickSolve</h1>
+        
+        <form id="complaintForm">
+            <div class="form-row">
+                <input type="text" id="respondent" class="input-field" placeholder="ID # OF RESPONDENT" required>
+                
+                <select id="complaintType" class="input-field" required>
+                    <option value="" disabled selected>TYPE OF COMPLAIN</option>
+                    <option value="academic">Academic Complaints</option>
+                    <option value="it">IT & System Issues</option>
+                    <option value="administrative">Administrative Complaints</option>
+                    <option value="harassment">Harassment & Misconduct</option>
+                    <option value="security">Security & Safety Concerns</option>
+                    <option value="others">Others</option>
+                </select>
+            </div>
+            
+            <div class="button-row">
+                <button type="submit" class="btn">SUBMIT COMPLAINT</button>
+                <button type="button" id="viewTickets" class="btn" onclick="window.location.href='view.html'">VIEW MY TICKETS</button>
+                <button type="button" id="logoutBtn" class="btn">LOG OUT</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                window.location.href = "index.html"; 
+            }
+        });
+    
+        document.getElementById("complaintForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+    
+            // Retrieve values from input fields
+            const studentId = document.getElementById("respondent").value.trim();
+            const complaintType = document.getElementById("complaintType").value;
+    
+            // Validate input fields
+            if (!studentId || !complaintType) {
+                alert("All fields are required.");
+                return;
+            }
+    
+            try {
+                const response = await fetch("http://localhost:5000/api/complaints", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
+                    body: JSON.stringify({ studentId, complaintType })
+                });
+    
+                const data = await response.json();
+    
+                if (response.ok) {
+                    alert("Complaint submitted successfully!");
+                    document.getElementById("complaintForm").reset();
+                } else {
+                    alert(`Error: ${data.message}`);
+                }
+            } catch (error) {
+                console.error("Request failed:", error);
+                alert("Server error, please try again later.");
+            }
+        });
+    
+        document.getElementById("logoutBtn").addEventListener("click", function () {
+            localStorage.removeItem("token"); 
+            window.location.href = "index.html";
+        });
+    </script>
+    
+</body>
+</html>
